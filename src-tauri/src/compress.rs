@@ -80,6 +80,103 @@ pub fn resolve_output_path(input: &Path, exists: impl Fn(&Path) -> bool) -> Path
     parent.join(format!("{stem}_compressed_{ts}.pdf"))
 }
 
+use std::time::{Duration, Instant};
+use tauri::{AppHandle, Manager};
+use tauri_plugin_shell::ShellExt;
+use tauri_plugin_shell::process::CommandEvent;
+
+use crate::ghostscript;
+
+const TIMEOUT_SECS: u64 = 300;
+
+pub async fn run(app: &AppHandle, input: &Path, preset: Preset) -> Result<CompressionReport, AppError> {
+    if !input.exists() {
+        return Err(AppError::FileNotFound);
+    }
+    let ext = input.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+    if ext != "pdf" {
+        return Err(AppError::NotAPdf(ext));
+    }
+    let input_size = std::fs::metadata(input).map_err(|_| AppError::ReadDenied)?.len();
+
+    let final_path = resolve_output_path(input, |p| p.exists());
+    let tmp_path = final_path.with_extension("pdf.tmp");
+
+    let args = build_gs_args(input, &tmp_path, preset)?;
+
+    let res_dir = app.path()
+        .resolve("resources/gs-lib/Resource", tauri::path::BaseDirectory::Resource)
+        .map_err(|_| AppError::GsMissing)?;
+    let gs_lib = format!("{init}:{font}",
+        init = res_dir.join("Init").display(),
+        font = res_dir.join("Font").display());
+
+    let sidecar = app.shell().sidecar(ghostscript::sidecar_name())
+        .map_err(|_| AppError::GsMissing)?
+        .args(&args)
+        .env("GS_LIB", gs_lib);
+
+    let (mut rx, _child) = sidecar.spawn().map_err(|_| AppError::GsMissing)?;
+
+    let start = Instant::now();
+    let mut stderr_tail = String::new();
+    let mut exit_code: Option<i32> = None;
+
+    while let Some(ev) = rx.recv().await {
+        if start.elapsed() > Duration::from_secs(TIMEOUT_SECS) {
+            return Err(AppError::GsTimeout(TIMEOUT_SECS));
+        }
+        match ev {
+            CommandEvent::Stderr(line) => {
+                let s = String::from_utf8_lossy(&line);
+                stderr_tail.push_str(&s);
+                if stderr_tail.len() > 200 {
+                    stderr_tail = stderr_tail.chars().rev().take(200).collect::<String>().chars().rev().collect();
+                }
+            }
+            CommandEvent::Terminated(payload) => {
+                exit_code = payload.code;
+                break;
+            }
+            _ => {}
+        }
+    }
+
+    let code = exit_code.unwrap_or(-1);
+    if code != 0 {
+        let _ = std::fs::remove_file(&tmp_path);
+        return Err(AppError::GsFailed { code, stderr_tail });
+    }
+
+    let out_meta = std::fs::metadata(&tmp_path).map_err(|_| AppError::OutputInvalid)?;
+    if out_meta.len() < 4 {
+        let _ = std::fs::remove_file(&tmp_path);
+        return Err(AppError::OutputInvalid);
+    }
+    let mut header = [0u8; 4];
+    use std::io::Read;
+    let mut f = std::fs::File::open(&tmp_path).map_err(|_| AppError::OutputInvalid)?;
+    f.read_exact(&mut header).map_err(|_| AppError::OutputInvalid)?;
+    drop(f);
+    if &header != b"%PDF" {
+        let _ = std::fs::remove_file(&tmp_path);
+        return Err(AppError::OutputInvalid);
+    }
+
+    if out_meta.len() >= input_size {
+        let _ = std::fs::remove_file(&tmp_path);
+        return Err(AppError::NoGain);
+    }
+
+    std::fs::rename(&tmp_path, &final_path).map_err(|_| AppError::WriteDenied(final_path.display().to_string()))?;
+
+    Ok(CompressionReport {
+        input_size,
+        output_size: out_meta.len(),
+        output_path: final_path.display().to_string(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
