@@ -1,116 +1,111 @@
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.typescript:hover {
-  filter: drop-shadow(0 0 2em #2d79c7);
-}
 :root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-
-  color: #0f0f0f;
-  background-color: #f6f6f6;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  background: #f7f7f8;
+  color: #1f2329;
 }
 
-.container {
+body {
   margin: 0;
-  padding-top: 10vh;
+  padding: 24px;
+}
+
+main {
+  max-width: 520px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
-
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
-
-.row {
-  display: flex;
-  justify-content: center;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
+  gap: 20px;
 }
 
 h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.dropzone {
+  border: 2px dashed #c5c8cf;
+  border-radius: 12px;
+  padding: 40px 16px;
   text-align: center;
-}
-
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-button {
   cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  background: #fff;
 }
 
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-input,
-button {
+.dropzone:hover, .dropzone:focus {
+  border-color: #3370ff;
+  background: #f3f7ff;
   outline: none;
 }
 
-#greet-input {
-  margin-right: 5px;
+.dropzone.busy {
+  border-color: #3370ff;
+  background: linear-gradient(90deg, #f3f7ff 0%, #d9e4ff 50%, #f3f7ff 100%);
+  background-size: 200% 100%;
+  animation: pulse 1.5s linear infinite;
+  pointer-events: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
-  }
+@keyframes pulse {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 
-  a:hover {
-    color: #24c8db;
-  }
+.dropzone-hint {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 500;
+}
 
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
+.dropzone-sub {
+  margin: 0;
+  color: #86909c;
+  font-size: 13px;
+}
+
+.presets {
+  border: 1px solid #e5e6eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+  background: #fff;
+}
+
+.presets legend {
+  padding: 0 6px;
+  color: #86909c;
+  font-size: 12px;
+}
+
+.presets label {
+  display: block;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+.presets input[type="number"] {
+  width: 60px;
+  padding: 2px 4px;
+  margin-left: 4px;
+}
+
+.status {
+  min-height: 24px;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.status-info { color: #4e5969; background: #f2f3f5; }
+.status-ok   { color: #00875a; background: #e8f5ef; }
+.status-err  { color: #cb272d; background: #fdecee; }
+
+.status button {
+  margin-left: 12px;
+  padding: 2px 10px;
+  font-size: 12px;
+  border: 1px solid #c5c8cf;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
 }
