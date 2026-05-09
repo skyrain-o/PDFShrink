@@ -66,10 +66,12 @@ cp -R "$GS_RES" "$RES_DIR/Resource"
 echo "Resources -> $RES_DIR/Resource ($(du -sh "$RES_DIR/Resource" | cut -f1))"
 
 # Smoke test: run staged binary against a fixture (if present)
+# MSYS_NO_PATHCONV=1 prevents Git Bash on Windows from rewriting -dPDFSETTINGS=/ebook
+# into a Windows path (e.g. "C:/Program Files/Git/ebook").
 FIX="$ROOT/src-tauri/tests/fixtures/english_text.pdf"
 if [[ -f "$FIX" ]]; then
   OUT="$(mktemp).pdf"
-  GS_LIB="$RES_DIR/Resource/Init:$RES_DIR/Resource/Font" \
+  MSYS_NO_PATHCONV=1 GS_LIB="$RES_DIR/Resource/Init:$RES_DIR/Resource/Font" \
     "$BIN_DIR/$TARGET_NAME" -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 \
     -dNOPAUSE -dQUIET -dBATCH -dPDFSETTINGS=/ebook \
     -sOutputFile="$OUT" "$FIX"
