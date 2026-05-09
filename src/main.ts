@@ -91,3 +91,20 @@ customDpi.addEventListener("input", () => {
 });
 
 setStatus("拖入一个 PDF 开始", "info");
+
+async function checkForUpdate() {
+  try {
+    const current = await invoke<string>("app_version");
+    const res = await fetch("https://api.github.com/repos/INTERNAL_OWNER/pdfshrink/releases/latest");
+    if (!res.ok) return;
+    const json = await res.json();
+    const latest = (json.tag_name as string).replace(/^v/, "");
+    if (latest && latest !== current) {
+      const banner = document.createElement("div");
+      banner.className = "status status-info";
+      banner.innerHTML = `有新版本 v${latest}，<a href="${json.html_url}" target="_blank">下载</a>`;
+      document.querySelector("main")!.prepend(banner);
+    }
+  } catch { /* offline or repo private */ }
+}
+checkForUpdate();
