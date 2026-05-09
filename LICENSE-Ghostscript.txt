@@ -1,0 +1,6 @@
+The bundled Ghostscript binary is distributed under the terms of the
+GNU Affero General Public License version 3 (AGPLv3).
+
+Source code: https://www.ghostscript.com/releases/gsdnld.html
+
+The full license text is at: https://www.gnu.org/licenses/agpl-3.0.txt
