@@ -18,6 +18,8 @@ async fn compress_pdf(app: AppHandle, path: String, preset: Preset) -> Result<Co
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![compress_pdf])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
