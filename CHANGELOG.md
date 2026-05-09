@@ -3,7 +3,7 @@
 ## [Unreleased]
 - Initial release
 
-## [0.1.0] - TBD
+## [0.1.0] - 2026-05-09
 ### Added
 - 单文件 PDF 压缩，4 个质量档位
 - 内置 Ghostscript 10.x
