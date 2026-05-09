@@ -1,0 +1,64 @@
+name: build
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14         # arm64
+            triple: aarch64-apple-darwin
+          - os: macos-13         # x64
+            triple: x86_64-apple-darwin
+          - os: windows-latest   # x64
+            triple: x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Rust target
+        run: rustup target add ${{ matrix.triple }}
+
+      - name: Install Win Ghostscript
+        if: runner.os == 'Windows'
+        run: choco install ghostscript --version=10.07.0 -y --no-progress
+
+      - name: Install npm deps
+        run: npm ci
+
+      - name: Stage Ghostscript
+        shell: bash
+        run: bash scripts/fetch-gs.sh
+
+      - name: Run Rust unit tests
+        working-directory: src-tauri
+        run: cargo test --lib
+
+      - name: Run integration test
+        working-directory: src-tauri
+        run: cargo test --test compress_real_pdf -- --nocapture
+
+      - name: Tauri build
+        run: npm run tauri build -- --target ${{ matrix.triple }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdfshrink-${{ matrix.triple }}
+          path: |
+            src-tauri/target/${{ matrix.triple }}/release/bundle/dmg/*.dmg
+            src-tauri/target/${{ matrix.triple }}/release/bundle/nsis/*.exe
+            src-tauri/target/${{ matrix.triple }}/release/bundle/msi/*.msi
+          if-no-files-found: ignore
