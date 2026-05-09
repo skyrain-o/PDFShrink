@@ -95,7 +95,7 @@ setStatus("拖入一个 PDF 开始", "info");
 async function checkForUpdate() {
   try {
     const current = await invoke<string>("app_version");
-    const res = await fetch("https://api.github.com/repos/INTERNAL_OWNER/pdfshrink/releases/latest");
+    const res = await fetch("https://api.github.com/repos/skyrain-o/PDFShrink/releases/latest");
     if (!res.ok) return;
     const json = await res.json();
     const latest = (json.tag_name as string).replace(/^v/, "");
