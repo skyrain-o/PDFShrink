@@ -65,6 +65,21 @@ fn push_dpi_args(args: &mut Vec<String>, dpi: u32) {
     args.push("-dGrayImageDownsampleType=/Bicubic".into());
 }
 
+use std::path::PathBuf;
+
+/// Resolve the output path for a given input PDF.
+/// `exists` is injected so tests can simulate collisions without touching the filesystem.
+pub fn resolve_output_path(input: &Path, exists: impl Fn(&Path) -> bool) -> PathBuf {
+    let parent = input.parent().unwrap_or(Path::new("."));
+    let stem = input.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
+    let primary = parent.join(format!("{stem}_compressed.pdf"));
+    if !exists(&primary) {
+        return primary;
+    }
+    let ts = chrono::Local::now().format("%Y%m%d-%H%M%S");
+    parent.join(format!("{stem}_compressed_{ts}.pdf"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -135,5 +150,35 @@ mod tests {
                 assert!(args.iter().any(|a| a == c), "missing {c} for {preset:?}");
             }
         }
+    }
+
+    use std::fs;
+
+    #[test]
+    fn output_path_appends_compressed_suffix() {
+        let p = PathBuf::from("/tmp/foo.pdf");
+        assert_eq!(
+            super::resolve_output_path(&p, |_| false).file_name().unwrap(),
+            "foo_compressed.pdf"
+        );
+    }
+
+    #[test]
+    fn output_path_collision_adds_timestamp() {
+        let p = PathBuf::from("/tmp/foo.pdf");
+        let resolved = super::resolve_output_path(&p, |path| {
+            path.file_name().unwrap().to_string_lossy() == "foo_compressed.pdf"
+        });
+        let name = resolved.file_name().unwrap().to_string_lossy().to_string();
+        assert!(name.starts_with("foo_compressed_"), "got {name}");
+        assert!(name.ends_with(".pdf"));
+    }
+
+    #[test]
+    fn output_path_preserves_directory() {
+        let p = PathBuf::from("/some/dir/foo.pdf");
+        let resolved = super::resolve_output_path(&p, |_| false);
+        assert_eq!(resolved.parent().unwrap(), Path::new("/some/dir"));
+        let _ = fs::metadata("/tmp"); // silence unused import
     }
 }
