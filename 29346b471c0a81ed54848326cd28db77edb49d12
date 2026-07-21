@@ -1,0 +1,24 @@
+CHANGELOG.md
+  510c6964feb2f892 4-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "29346b471c0a81ed54848326cd28db77edb49d12",
+  "prompts": {
+    "510c6964feb2f892": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a5b51561-a475-408f-bc1d-6bcd39dab8ec",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "sky <53413907>",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 1,
+      "accepted_lines": 5,
+      "overriden_lines": 0,
+      "messages_url": "https://tripartite-bff.tsign.cn/cas/001e79bed830514eb4f892134678bbbcb042e86c0cc76ce0ffefc832ec3abefc"
+    }
+  }
+}
