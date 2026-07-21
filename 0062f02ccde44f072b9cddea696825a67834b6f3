@@ -1,0 +1,30 @@
+src-tauri/tests/compress_real_pdf.rs
+  510c6964feb2f892 28-36,48-80
+scripts/fetch-gs.sh
+  510c6964feb2f892 68-81
+src-tauri/src/compress.rs
+  510c6964feb2f892 107-108,110-113,116-117,122-136
+src-tauri/.gitignore
+  510c6964feb2f892 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "0062f02ccde44f072b9cddea696825a67834b6f3",
+  "prompts": {
+    "510c6964feb2f892": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a5b51561-a475-408f-bc1d-6bcd39dab8ec",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "sky <53413907>",
+      "messages": [],
+      "total_additions": 82,
+      "total_deletions": 17,
+      "accepted_lines": 82,
+      "overriden_lines": 0,
+      "messages_url": "https://tripartite-bff.tsign.cn/cas/72e9b769c3124fc8ca6b7a3d3112d678a09dc718d91415fc9e3e1bd6fd0d6b37"
+    }
+  }
+}
