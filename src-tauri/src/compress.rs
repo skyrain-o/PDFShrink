@@ -104,17 +104,36 @@ pub async fn run(app: &AppHandle, input: &Path, preset: Preset) -> Result<Compre
 
     let args = build_gs_args(input, &tmp_path, preset)?;
 
-    let res_dir = app.path()
-        .resolve("resources/gs-lib/Resource", tauri::path::BaseDirectory::Resource)
+    let gs_lib_dir = app.path()
+        .resolve("resources/gs-lib", tauri::path::BaseDirectory::Resource)
         .map_err(|_| AppError::GsMissing)?;
-    let gs_lib = format!("{init}:{font}",
-        init = res_dir.join("Init").display(),
-        font = res_dir.join("Font").display());
+    let res_dir = gs_lib_dir.join("Resource");
+    // GS_LIB is an OS-path-list: `:`-separated on Unix, `;`-separated on Windows.
+    // join_paths picks the right separator for the current platform.
+    let gs_lib = std::env::join_paths([res_dir.join("Init"), res_dir.join("Font")])
+        .map_err(|_| AppError::GsMissing)?;
 
-    let sidecar = app.shell().sidecar(ghostscript::sidecar_name())
+    #[cfg_attr(not(target_os = "windows"), allow(unused_mut))]
+    let mut sidecar = app.shell().sidecar(ghostscript::sidecar_name())
         .map_err(|_| AppError::GsMissing)?
         .args(&args)
         .env("GS_LIB", gs_lib);
+
+    // On Windows the sidecar (`gswin64c.exe`) is a thin launcher that loads
+    // `gsdll64.dll` via LoadLibrary at runtime. We ship that DLL inside
+    // gs_lib_dir; put the directory on the child's PATH so the launcher finds
+    // it without requiring a system-wide Ghostscript install (bug: LoadLibrary
+    // error code 126 on clean machines).
+    #[cfg(target_os = "windows")]
+    {
+        let existing = std::env::var("PATH").unwrap_or_default();
+        let path = std::env::join_paths(
+            std::iter::once(gs_lib_dir.clone())
+                .chain(std::env::split_paths(&existing)),
+        )
+        .map_err(|_| AppError::GsMissing)?;
+        sidecar = sidecar.env("PATH", path);
+    }
 
     let (mut rx, _child) = sidecar.spawn().map_err(|_| AppError::GsMissing)?;
 

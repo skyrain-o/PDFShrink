@@ -65,6 +65,20 @@ rm -rf "$RES_DIR/Resource"
 cp -R "$GS_RES" "$RES_DIR/Resource"
 echo "Resources -> $RES_DIR/Resource ($(du -sh "$RES_DIR/Resource" | cut -f1))"
 
+# On Windows the bundled binary is `gswin64c.exe`, a thin launcher that loads
+# `gsdll64.dll` at runtime. `brew`/self-contained `gs` on macOS needs no DLL.
+# Ship the DLL inside the bundled resource tree so it travels with the app;
+# compress.rs puts this directory on the sidecar's PATH so LoadLibrary finds it
+# even on machines with no system-wide Ghostscript install.
+if [[ "$uname_s" == MINGW* || "$uname_s" == MSYS* || "$uname_s" == CYGWIN* ]]; then
+  GS_DLL="$(dirname "$GS_BIN")/gsdll64.dll"
+  if [[ ! -f "$GS_DLL" ]]; then
+    echo "gsdll64.dll not found next to $GS_BIN" >&2; exit 1
+  fi
+  cp "$GS_DLL" "$RES_DIR/gsdll64.dll"
+  echo "DLL -> $RES_DIR/gsdll64.dll"
+fi
+
 # End-to-end validation is handled by the Rust integration test
 # (src-tauri/tests/compress_real_pdf.rs), which spawns the staged GS via
 # Command::new — no shell, no MSYS path mangling. Removing a duplicate
