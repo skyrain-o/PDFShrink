@@ -1,0 +1,24 @@
+src-tauri/src/error.rs
+  510c6964feb2f892 64,94-102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.19",
+  "base_commit_sha": "dc405032c31f082714cee883cc6fef75bc105233",
+  "prompts": {
+    "510c6964feb2f892": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a5b51561-a475-408f-bc1d-6bcd39dab8ec",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "sky <53413907>",
+      "messages": [],
+      "total_additions": 11,
+      "total_deletions": 1,
+      "accepted_lines": 11,
+      "overriden_lines": 0,
+      "messages_url": "https://tripartite-bff.tsign.cn/cas/88290a2fc6e90b84597fc35caff8d09ef049a2750dc346bd05cd55159c3c4143"
+    }
+  }
+}
